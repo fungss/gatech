@@ -87,6 +87,39 @@ public class MinHeap<T extends Comparable<? super T>> {
         }
     }
 
+    // helper method
+    private void downHeap(int n){
+        // begin downHeap comparison only if child exists
+        if (n <= size/2){
+            int parent = n;
+            int child = 0;
+            // check number of children
+            // 1 child case
+            if (backingArray[n*2] != null && backingArray[n*2+1] == null){
+                child = n*2;
+            // 2 children case
+            } else if (backingArray[n*2] != null && backingArray[n*2+1] != null){
+                // compare the children, find the smaller child
+                if (backingArray[n*2].compareTo(backingArray[n*2+1]) < 0){
+                    child = n*2;
+                } else {
+                    child = n*2+1;
+                }
+            }
+            if (child != 0){
+                // swap if parent is bigger than the smaller child
+                if (backingArray[parent].compareTo(backingArray[child]) > 0) {
+                    // System.out.printf("swap parent %d with smaller child %d", backingArray[parent],backingArray[child]);
+                    // System.out.println();
+                    T tmp = backingArray[parent];
+                    backingArray[parent] = backingArray[child];
+                    backingArray[child] = tmp;
+                } 
+            }
+            downHeap(n*2);
+        }
+    }
+
     /**
      * Removes and returns the min item of the heap. As usual for array-backed
      * structures, be sure to null out spots as you remove. Do not decrease the
@@ -99,6 +132,19 @@ public class MinHeap<T extends Comparable<? super T>> {
      */
     public T remove() {
         // WRITE YOUR CODE HERE (DO NOT MODIFY METHOD HEADER)!
+        // check NoSuchElementException 
+        if (backingArray[1]==null){
+            throw new NoSuchElementException();
+        } else {
+            // remove root element
+            T removed = backingArray[1];
+            backingArray[1] = backingArray[size];
+            backingArray[size] = null;
+            size--;
+            // begin downheap
+            downHeap(1);
+            return removed;
+        }
     }
 
     /**
@@ -135,12 +181,14 @@ public class MinHeap<T extends Comparable<? super T>> {
 
         // testMinHeap.add(null);
         // ------------------------------------------
+        // test add method
+        System.out.println("-------------test add method-------------");
+        //
         // add 13 elements to testMinHeap
-
         // for (int i = 0; i < 14; i++){
         //     testMinHeap.add(i);
         // }
-
+        // unsorted 13 elements
         testMinHeap.add(1);
         testMinHeap.add(3);
         testMinHeap.add(5);
@@ -154,21 +202,29 @@ public class MinHeap<T extends Comparable<? super T>> {
         testMinHeap.add(11);
         testMinHeap.add(7);
         testMinHeap.add(6);
-        // ------------------------------------------
-        // test add method
 
-        // System.out.println(testMinHeap.size());
-        // Object[] res = testMinHeap.getBackingArray();
-        // System.out.printf("The length of the res array is %d", res.length);
-        // System.out.println();
-        // for (int i=1; i<=testMinHeap.size(); i++) {
-        //     System.out.printf("Postition %d: ", i);
-        //     System.out.printf("%d", (int) res[i]);
-        //     System.out.println();
-        // }
+        // ------------------------------------------
+        // print backingArray
+        System.out.printf("Current array size is: %d", testMinHeap.size());
+        System.out.println();
+        Object[] addRes = testMinHeap.getBackingArray();
+        System.out.printf("The length of the res array is %d", addRes.length);
+        System.out.println();
+        for (int i=1; i<=testMinHeap.size(); i++) {
+            System.out.printf("Postition %d: ", i);
+            System.out.printf("%d", (int) addRes[i]);
+            System.out.println();
+        }
         // ------------------------------------------
         // test remove method
-        
-
+        System.out.println("-------------test remove method-------------");
+        System.out.printf("Removed root: %d", testMinHeap.remove());
+        System.out.println();
+        Object[] reMoveRes = testMinHeap.getBackingArray();
+        for (int i=1; i<=testMinHeap.size(); i++) {
+            System.out.printf("Postition %d: ", i);
+            System.out.printf("%d", (int) reMoveRes[i]);
+            System.out.println();
+        }
     }
 }
