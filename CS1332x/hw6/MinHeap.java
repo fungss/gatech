@@ -116,7 +116,7 @@ public class MinHeap<T extends Comparable<? super T>> {
                     backingArray[child] = tmp;
                 } 
             }
-            downHeap(n*2);
+            downHeap(child);
         }
     }
 
