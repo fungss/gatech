@@ -71,7 +71,73 @@ public class ExternalChainingHashMap<K, V> {
      */
     public V put(K key, V value) {
         // WRITE YOUR CODE HERE (DO NOT MODIFY METHOD HEADER)!
+        if (key == null || value == null){
+            throw new IllegalArgumentException();
+        } else {
+            V toBeReturn = null;
+            // resize if load factor > threshold
+            // System.out.printf("load factor is: %.2f", ((double) size/table.length));
+            // System.out.println();
+            if (((double) (size+1)/table.length) > MAX_LOAD_FACTOR){
+                resizeBackingTable(2*table.length+1);
+            }
+            // place new (key, value) pair at idx if null
+            // System.out.printf("idx: %d", Math.abs(key.hashCode()%table.length));
+            // System.out.println();
+            if (table[Math.abs(key.hashCode()%table.length)] == null){  
+                table[Math.abs(key.hashCode()%table.length)] = (ExternalChainingMapEntry<K, V>) new ExternalChainingMapEntry<>(key, value);
+                // increase size
+                size++;
+            } else {    // loop over linked list. if key duplicates, replace value
+                boolean isDuplicate = false;
+                ExternalChainingMapEntry<K, V> curr = table[Math.abs(key.hashCode()%table.length)];
+                if (curr.getKey().equals(key)){
+                    toBeReturn = curr.getValue();
+                    curr.setValue(value);
+                    isDuplicate = true;
+                }
+                while (curr.getNext() != null){
+                    curr = curr.getNext();
+                    if (curr.getKey().equals(key)){
+                        toBeReturn = curr.getValue();
+                        curr.setValue(value);
+                        isDuplicate = true;
+                        break;
+                    }
+                }
+                // create new node and point to the old head if idx's been filled
+                if (isDuplicate == false){
+                    table[Math.abs(key.hashCode()%table.length)] = (ExternalChainingMapEntry<K, V>) new ExternalChainingMapEntry<>(key, value, table[Math.abs(key.hashCode()%table.length)]);
+                    // increase size
+                    size++;
+                }
+            }
+            // System.out.println(table[Math.abs(key.hashCode()%table.length)].toString());
+            return toBeReturn;
+        }
     }
+
+    // private ExternalChainingMapEntry<K, V> reRemove(ExternalChainingMapEntry<K, V> curr, K key, V toBeReturn){
+    //     // throw exception if curr node is null
+    //     if (curr == null){
+    //         return curr;
+    //     } else {
+    //         // return value and delete curr node by replacing with next node if key found
+    //         if (curr.getKey() == key) {
+    //             toBeReturn = curr.getValue();
+    //             size--;
+    //             return curr.getNext();
+    //         } else {
+    //             if (curr.getNext()!=null){
+    //                 // proceed to next node
+    //                 curr.setNext(reRemove(curr.getNext(), key, toBeReturn));
+    //             }
+    //             return curr;
+    //         }
+    //     }
+    // }
+
+
 
     /**
      * Removes the entry with a matching key from the map.
@@ -83,7 +149,37 @@ public class ExternalChainingHashMap<K, V> {
      */
     public V remove(K key) {
         // WRITE YOUR CODE HERE (DO NOT MODIFY METHOD HEADER)!
+        if (key == null) {
+            throw new IllegalArgumentException();
+        } else {
+            // loop over the entry if it's not null
+            if (table[Math.abs(key.hashCode()%table.length)] != null){
+                ExternalChainingMapEntry<K,V> curr = table[Math.abs(key.hashCode()%table.length)];
+                V toBeReturn = null;
+                if (curr.getKey().equals(key)){
+                    toBeReturn = curr.getValue();
+                    table[Math.abs(key.hashCode()%table.length)] = curr.getNext();
+                    size--;
+                    return toBeReturn;
+                } else {
+                    while(curr.getNext()!=null && !curr.getNext().getKey().equals(key)){
+                        curr = curr.getNext();
+                    }
+                    if (curr.getNext()!=null && curr.getNext().getKey().equals(key)) {
+                        toBeReturn = curr.getNext().getValue();
+                        curr.setNext(curr.getNext().getNext());
+                        size--;
+                        return toBeReturn;
+                    } else {
+                        throw new NoSuchElementException(); 
+                    }
+                }
+            } else {
+                throw new NoSuchElementException();
+            }
+        }
     }
+    
 
     /**
      * Helper method stub for resizing the backing table to length.
@@ -104,6 +200,29 @@ public class ExternalChainingHashMap<K, V> {
      */
     private void resizeBackingTable(int length) {
         // WRITE YOUR CODE HERE (DO NOT MODIFY METHOD HEADER)!
+        ExternalChainingMapEntry<K, V>[] newTable = (ExternalChainingMapEntry<K, V>[]) new ExternalChainingMapEntry[length];
+        // System.out.println(newTable.length);
+        for (int i=0; i<table.length;i++){
+            // recompress hash code for non-null entry
+            if (table[i]!=null){
+                // loop over each non-null entry
+                ExternalChainingMapEntry<K, V> curr = table[i];
+                if (newTable[Math.abs(curr.getKey().hashCode()%newTable.length)] == null) {
+                    newTable[Math.abs(curr.getKey().hashCode()%newTable.length)] = (ExternalChainingMapEntry<K, V>) new ExternalChainingMapEntry<>(curr.getKey(), curr.getValue());
+                } else {
+                    newTable[Math.abs(curr.getKey().hashCode()%newTable.length)] = (ExternalChainingMapEntry<K, V>) new ExternalChainingMapEntry<>(curr.getKey(), curr.getValue(), newTable[Math.abs(curr.getKey().hashCode()%newTable.length)]);
+                }
+                while (curr.getNext()!=null){
+                    curr = curr.getNext();
+                    if (newTable[Math.abs(curr.getKey().hashCode()%newTable.length)] == null) {
+                        newTable[Math.abs(curr.getKey().hashCode()%newTable.length)] = (ExternalChainingMapEntry<K, V>) new ExternalChainingMapEntry<>(curr.getKey(), curr.getValue());
+                    } else {
+                        newTable[Math.abs(curr.getKey().hashCode()%newTable.length)] = (ExternalChainingMapEntry<K, V>) new ExternalChainingMapEntry<>(curr.getKey(), curr.getValue(), newTable[Math.abs(curr.getKey().hashCode()%newTable.length)]);
+                    }
+                }
+            }
+        }
+        table = newTable;
     }
 
     /**
