@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.HashMap;
 
 /**
  * Your implementation of various graph traversal algorithms.
@@ -40,6 +41,29 @@ public class GraphAlgorithms {
      */
     public static <T> List<Vertex<T>> bfs(Vertex<T> start, Graph<T> graph) {
         // WRITE YOUR CODE HERE (DO NOT MODIFY METHOD HEADER)!
+        Set<Vertex<T>> visitedSet = new HashSet<Vertex<T>>();
+        Queue<Vertex<T>> queue = new ArrayDeque<Vertex<T>>();
+        HashMap<Vertex<T>, List<VertexDistance<T>>> adjMap = (HashMap<Vertex<T>, List<VertexDistance<T>>>) graph.getAdjList();
+        List<Vertex<T>> result = new ArrayList<>();
+
+        queue.add(start);
+        visitedSet.add(start);
+
+        while(!queue.isEmpty()){
+            Vertex<T> v = queue.remove();
+            result.add(v);
+            if (!adjMap.get(v).isEmpty()){
+                ArrayList<VertexDistance<T>> adjList = (ArrayList<VertexDistance<T>>) adjMap.get(v);
+                for (int i=0; i<adjList.size(); i++){
+                    Vertex<T> w = adjList.get(i).getVertex();
+                    if (visitedSet.contains(w)!=true){
+                        queue.add(w);
+                        visitedSet.add(w);
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     /**
@@ -72,5 +96,25 @@ public class GraphAlgorithms {
      */
     public static <T> List<Vertex<T>> dfs(Vertex<T> start, Graph<T> graph) {
         // WRITE YOUR CODE HERE (DO NOT MODIFY METHOD HEADER)!
+        Set<Vertex<T>> visitedSet = new HashSet<>();
+        HashMap<Vertex<T>, List<VertexDistance<T>>> adjMap = (HashMap<Vertex<T>, List<VertexDistance<T>>>) graph.getAdjList();
+        List<Vertex<T>> result = new ArrayList<>();
+        rDFS(start, adjMap, visitedSet, result);
+        return result;
+    }
+
+    private static <T> void rDFS(Vertex<T> vertex, Map<Vertex<T>, List<VertexDistance<T>>> adjMap, Set<Vertex<T>> visitedSet, List<Vertex<T>> result){
+        if (visitedSet.contains(vertex)){
+            return;
+        }
+        visitedSet.add(vertex);
+        result.add(vertex);
+        if (adjMap.get(vertex).isEmpty()==true){
+            return;
+        }
+        ArrayList<VertexDistance<T>> adjList = (ArrayList<VertexDistance<T>>) adjMap.get(vertex);
+        for (int i=0; i<adjList.size(); i++){
+            rDFS(adjList.get(i).getVertex(), adjMap, visitedSet, result);
+        }
     }
 }
